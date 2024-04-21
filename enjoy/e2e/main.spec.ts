@@ -23,6 +23,7 @@ let page: Page;
 const resultDir = path.join(process.cwd(), "test-results");
 
 test.beforeAll(async () => {
+  console.log("Starting the Electron app");
   // find the latest build in the out directory
   const latestBuild = findLatestBuild();
   console.log(`Latest build: ${latestBuild}`);

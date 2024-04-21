@@ -83,11 +83,16 @@ class EchogardenWrapper {
    * @returns A promise that resolves to the enjoy:// protocal URL of the transcoded WAV file.
    */
   async transcode(url: string, sampleRate = 16000): Promise<string> {
+    console.log("transcode start url=="+url);
     const filePath = enjoyUrlToPath(url);
+    console.log("transcode start filePath=="+filePath);
     const rawAudio = await this.ensureRawAudio(filePath, sampleRate);
+    // console.log("transcode start rawAudio=="+rawAudio);
     const audioBuffer = this.encodeWaveBuffer(rawAudio);
+    // console.log("transcode start audioBuffer=="+audioBuffer);
 
     const outputFilePath = path.join(settings.cachePath(), `${Date.now()}.wav`);
+    console.log("transcode start outputFilePath=="+outputFilePath);
     fs.writeFileSync(outputFilePath, audioBuffer);
 
     return pathToEnjoyUrl(outputFilePath);
@@ -103,6 +108,7 @@ class EchogardenWrapper {
         options: AlignmentOptions
       ) => {
         try {
+          console.log("echogarden-align transcript=="+transcript);
           return await this.align(input, transcript, options);
         } catch (err) {
           logger.error(err);
@@ -115,6 +121,7 @@ class EchogardenWrapper {
       "echogarden-transcode",
       async (_event, url: string, sampleRate?: number) => {
         try {
+          console.log("echogarden-transcode url=="+url);
           return await this.transcode(url, sampleRate);
         } catch (err) {
           logger.error(err);

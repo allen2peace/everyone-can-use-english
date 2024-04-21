@@ -16,18 +16,24 @@ export const useTranscribe = () => {
   const { whisperConfig, openai } = useContext(AISettingsProviderContext);
   const { punctuateText } = useAiCommand();
 
+  //把传入的 audio 转化为 wav 格式
   const transcode = async (src: string | Blob): Promise<string> => {
+    console.log(`transcode-- src== ${src}`);
     if (src instanceof Blob) {
+      console.log(`transcode-- src instanceof Blob== ${src}`);
       src = await EnjoyApp.cacheObjects.writeFile(
         `${Date.now()}.${src.type.split("/")[1].split(";")[0]}`,
         await src.arrayBuffer()
       );
     }
-
+    console.log(`transcode-- src22== ${src}`);
     const output = await EnjoyApp.echogarden.transcode(src);
+    console.log(`transcode-- output== ${output}`);
     return output;
   };
 
+  //把传入的 audio 转化为 wav 格式，再传给 openai 或者 local 去语音转文本；
+  //然后把生成文本和 audio 文件传入align 方法中对齐；
   const transcribe = async (
     mediaSrc: string,
     params?: {
@@ -41,10 +47,13 @@ export const useTranscribe = () => {
     alignmentResult: AlignmentResult;
     originalText?: string;
   }> => {
+    console.log(`transcribe mediaSrc== ${mediaSrc}`);
     const url = await transcode(mediaSrc);
+    console.log(`transcribe url== ${url}`);
     const { targetId, targetType, originalText } = params || {};
+    console.log(`transcribe url== ${url}, targetId== ${targetId}, targetType== ${targetType}, originalText== ${originalText}`);
     const blob = await (await fetch(url)).blob();
-
+  console.log(`transcribe url== ${url}, service== ${whisperConfig.service}, originalText== ${originalText}`);
     let result;
     if (originalText) {
       result = {
@@ -62,7 +71,7 @@ export const useTranscribe = () => {
     } else {
       throw new Error(t("whisperServiceNotSupported"));
     }
-
+    console.log(`after transcribe result==${result}, originalText==${originalText}`)
     let transcript = originalText || result.text;
     // if the transcript does not contain any punctuation, use AI command to add punctuation
     if (!transcript.match(/\w[.,!?](\s|$)/)) {
@@ -72,11 +81,12 @@ export const useTranscribe = () => {
         console.warn(err.message);
       }
     }
-
+    console.log(`before align transcript==${transcript}`)
     const alignmentResult = await EnjoyApp.echogarden.align(
       new Uint8Array(await blob.arrayBuffer()),
       transcript
     );
+    console.log(`after align alignmentResult==${alignmentResult}`)
 
     return {
       ...result,

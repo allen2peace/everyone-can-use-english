@@ -24,6 +24,7 @@ const __dirname = path
 const logger = log.scope("ffmpeg");
 export default class FfmpegWrapper {
   checkCommand(): Promise<boolean> {
+    console.log("ffmpeg checkCommand start");
     const ffmpeg = Ffmpeg();
     const sampleFile = path.join(__dirname, "samples", "jfk.wav");
     return new Promise((resolve, _reject) => {
@@ -40,6 +41,7 @@ export default class FfmpegWrapper {
   }
 
   generateMetadata(input: string): Promise<Ffmpeg.FfprobeData> {
+    console.log("ffmpeg generateMetadata start input=="+input);
     const ffmpeg = Ffmpeg();
     return new Promise((resolve, reject) => {
       ffmpeg
@@ -190,6 +192,7 @@ export default class FfmpegWrapper {
     output?: string,
     options?: string[]
   ): Promise<string> {
+    console.log("ffmpeg transcode start input=="+input);
     input = enjoyUrlToPath(input);
 
     if (!output) {

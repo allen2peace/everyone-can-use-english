@@ -62,6 +62,7 @@ export const useTranscriptions = (media: AudioType | VideoType) => {
         originalText = r.result?.originalText;
       }
     }
+    console.log(`generateTranscription originalText== ${originalText}`);
 
     setTranscribing(true);
     setTranscribingProgress(0);
@@ -71,6 +72,8 @@ export const useTranscriptions = (media: AudioType | VideoType) => {
         targetType: media.mediaType,
         originalText,
       });
+
+      console.log(`generateTranscription transcribe return== ${alignmentResult}`);
 
       let timeline: TimelineEntry[] = [];
       alignmentResult.timeline.forEach((t) => {
