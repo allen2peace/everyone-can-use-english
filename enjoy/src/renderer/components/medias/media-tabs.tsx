@@ -23,6 +23,7 @@ export const MediaTabs = () => {
 
   return (
     <ScrollArea className="h-full">
+      //这三个是顶部的tab切换按钮,分别是 语音文本 、我的练习 和 资源信息
       <div
         className={`p-1 bg-muted rounded-t-lg mb-2 text-sm sticky top-0 z-[1] grid gap-4 ${media?.mediaType === "Video" ? "grid-cols-4" : "grid-cols-3"
           }`}
@@ -61,16 +62,16 @@ export const MediaTabs = () => {
       </div>
 
       <div className={tab === "provider" ? "" : "hidden"}>
-        <MediaProvider />
+        <MediaProvider />//视频的时候显示的是播放器
       </div>
       <div className={tab === "recordings" ? "" : "hidden"}>
-        <MediaRecordings />
+        <MediaRecordings />//我的练习内容
       </div>
       <div className={tab === "transcription" ? "" : "hidden"}>
-        <MediaTranscription />
+        <MediaTranscription />//语音文本内容
       </div>
       <div className={tab === "info" ? "" : "hidden"}>
-        <MediaInfoPanel />
+        <MediaInfoPanel />//资源信息内容
       </div>
     </ScrollArea>
   );
