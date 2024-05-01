@@ -28,6 +28,7 @@ import {
   LucideIcon,
   HelpCircleIcon,
   ExternalLinkIcon,
+  NotebookPenIcon,
 } from "lucide-react";
 import { useLocation, Link } from "react-router-dom";
 import { t } from "i18next";
@@ -96,6 +97,15 @@ export const Sidebar = () => {
               tooltip={t("sidebar.aiAssistant")}
               active={activeTab.startsWith("/conversations")}
               Icon={BotIcon}
+              testid="sidebar-conversations"
+            />
+
+            <SidebarItem
+              href="/notes"
+              label={t("sidebar.notes")}
+              tooltip={t("sidebar.notes")}
+              active={activeTab === "/notes"}
+              Icon={NotebookPenIcon}
             />
 
             <SidebarItem
@@ -224,8 +234,9 @@ const SidebarItem = (props: {
   tooltip: string;
   active: boolean;
   Icon: LucideIcon;
+  testid?: string;
 }) => {
-  const { href, label, tooltip, active, Icon } = props;
+  const { href, label, tooltip, active, Icon, testid } = props;
 
   return (
     <Link
@@ -233,6 +244,7 @@ const SidebarItem = (props: {
       data-tooltip-id="global-tooltip"
       data-tooltip-content={tooltip}
       data-tooltip-place="right"
+      data-testid={testid}
       className="block px-1 xl:px-2"
     >
       <Button

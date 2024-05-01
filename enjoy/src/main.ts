@@ -21,15 +21,17 @@ Sentry.init({
 app.commandLine.appendSwitch("enable-features", "SharedArrayBuffer");
 
 // config auto updater
-updateElectronApp({
-  updateSource: {
-    type: UpdateSourceType.StaticStorage,
-    baseUrl: `https://dl.enjoy.bot/app/${process.platform}/${process.arch}`,
-  },
-  updateInterval: "1 hour",
-  logger: logger,
-  notifyUser: true,
-});
+if (!process.env.CI) {
+  updateElectronApp({
+    updateSource: {
+      type: UpdateSourceType.StaticStorage,
+      baseUrl: `https://dl.enjoy.bot/app/${process.platform}/${process.arch}`,
+    },
+    updateInterval: "1 hour",
+    logger: logger,
+    notifyUser: true,
+  });
+}
 
 // Add context menu
 contextMenu({
@@ -37,6 +39,7 @@ contextMenu({
   showInspectElement: false,
   showLookUpSelection: false,
   showLearnSpelling: false,
+  showSelectAll: false,
   labels: {
     copy: t("copy"),
     cut: t("cut"),
@@ -44,7 +47,7 @@ contextMenu({
     selectAll: t("selectAll"),
   },
   shouldShowMenu: (_event, params) => {
-    return params.isEditable;
+    return params.isEditable || !!params.selectionText;
   },
 });
 
@@ -75,7 +78,7 @@ protocol.registerSchemesAsPrivileged([
 app.on("ready", async () => {
   protocol.handle("enjoy", (request) => {
     let url = request.url.replace("enjoy://", "");
-    if (url.match(/library\/(audios|videos|recordings|speeches)/g)) {
+    if (url.match(/library\/(audios|videos|recordings|speeches|segments)/g)) {
       url = url.replace("library/", "");
       url = path.join(settings.userDataPath(), url);
     } else if (url.startsWith("library")) {

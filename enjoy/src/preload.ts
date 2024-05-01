@@ -317,20 +317,6 @@ contextBridge.exposeInMainWorld("__ENJOY_APP__", {
     destroy: (id: string) => {
       return ipcRenderer.invoke("conversations-destroy", id);
     },
-    ask: (
-      id: string,
-      params: {
-        messageId?: string;
-        content?: string;
-        file?: string;
-        blob?: {
-          type: string;
-          arrayBuffer: ArrayBuffer;
-        };
-      }
-    ) => {
-      return ipcRenderer.invoke("conversations-ask", id, params);
-    },
   },
   messages: {
     findAll: (params: { where?: any; offset?: number; limit?: number }) => {
@@ -485,6 +471,53 @@ contextBridge.exposeInMainWorld("__ENJOY_APP__", {
     },
     save: (id: string, data: WaveFormDataType) => {
       return ipcRenderer.invoke("waveforms-save", id, data);
+    },
+  },
+  segments: {
+    findAll: (params: {
+      targetId?: string;
+      targetType?: string;
+      offset?: number;
+      limit?: number;
+    }) => {
+      return ipcRenderer.invoke("segments-find-all", params);
+    },
+    find: (id: string) => {
+      return ipcRenderer.invoke("segments-find", id);
+    },
+    create: (params: any) => {
+      return ipcRenderer.invoke("segments-create", params);
+    },
+    sync: (id: string) => {
+      return ipcRenderer.invoke("segments-sync", id);
+    },
+  },
+  notes: {
+    groupByTarget: (params?: { limit?: number; offset?: number }) => {
+      return ipcRenderer.invoke("notes-group-by-target", params);
+    },
+    groupBySegment: (targetId: string, targetType: string) => {
+      return ipcRenderer.invoke("notes-group-by-segment", targetId, targetType);
+    },
+    findAll: (params: {
+      targetId?: string;
+      targetType?: string;
+      offset?: number;
+      limit?: number;
+    }) => {
+      return ipcRenderer.invoke("notes-find-all", params);
+    },
+    update: (id: string, params: any) => {
+      return ipcRenderer.invoke("notes-update", id, params);
+    },
+    delete: (id: string) => {
+      return ipcRenderer.invoke("notes-delete", id);
+    },
+    create: (params: any) => {
+      return ipcRenderer.invoke("notes-create", params);
+    },
+    sync: (id: string) => {
+      return ipcRenderer.invoke("notes-sync", id);
     },
   },
 });

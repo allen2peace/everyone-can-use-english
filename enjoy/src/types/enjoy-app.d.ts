@@ -181,18 +181,6 @@ type EnjoyAppType = {
     create: (params: any) => Promise<ConversationType>;
     update: (id: string, params: any) => Promise<ConversationType>;
     destroy: (id: string) => Promise<void>;
-    ask: (
-      id: string,
-      params: {
-        messageId?: string;
-        content?: string;
-        file?: string;
-        blob?: {
-          type: string;
-          arrayBuffer: ArrayBuffer;
-        };
-      }
-    ) => Promise<MessageType[]>;
   };
   messages: {
     findAll: (params: any) => Promise<MessageType[]>;
@@ -278,5 +266,36 @@ type EnjoyAppType = {
   waveforms: {
     find: (id: string) => Promise<WaveFormDataType>;
     save: (id: string, data: WaveFormDataType) => Promise<void>;
+  };
+  segments: {
+    findAll: (params: any) => Promise<SegmentType[]>;
+    find: (id: string) => Promise<SegmentType>;
+    create: (params: {
+      targetId: string;
+      targetType: string;
+      segmentIndex: number;
+    }) => Promise<SegmentType>;
+    sync: (id: string) => Promise<SegmentType>;
+  };
+  notes: {
+    groupByTarget: (params: any) => Promise<any>;
+    groupBySegment: (targetId: string, targetType: string) => Promise<any>;
+    findAll: (params: any) => Promise<NoteType[]>;
+    find: (id: string) => Promise<NoteType>;
+    update: (
+      id: string,
+      params: {
+        content: string;
+        parameters?: any;
+      }
+    ) => Promise<NoteType>;
+    delete: (id: string) => Promise<void>;
+    create: (params: {
+      targetId: string;
+      targetType: string;
+      content: string;
+      parameters?: any;
+    }) => Promise<NoteType>;
+    sync: (id: string) => Promise<NoteType>;
   };
 };

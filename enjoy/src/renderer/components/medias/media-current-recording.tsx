@@ -28,7 +28,6 @@ import {
   SheetContent,
   SheetHeader,
   SheetClose,
-  ScrollArea,
 } from "@renderer/components/ui";
 import {
   GitCompareIcon,
@@ -110,7 +109,7 @@ export const MediaCurrentRecording = () => {
     if (!frequencies || !peaks) return;
 
     // Trim the peaks from start to end, so we can render the voicable part of the recording
-    const minValue = 0.01;
+    const minValue = 0.015;
     let voiceStartIndex = 0;
     let voiceEndIndex = peaks.length - 1;
 
@@ -304,6 +303,7 @@ export const MediaCurrentRecording = () => {
   }, [ref, currentRecording, isRecording, layout?.playerHeight]);
 
   useEffect(() => {
+    setCurrentTime(0);
     setIsComparing(false);
     removeComparingPitchContour();
   }, [currentRecording]);
@@ -409,12 +409,7 @@ export const MediaCurrentRecording = () => {
       if (!player) return;
       keyboardEvent.preventDefault();
 
-      if (
-        (navigator.platform.includes("Mac") && hotkeyEvent.meta) ||
-        hotkeyEvent.ctrl
-      ) {
-        document.getElementById("recording-play-or-pause-button").click();
-      }
+      document.getElementById("recording-play-or-pause-button").click();
     },
     { enabled },
     [player]
@@ -492,39 +487,38 @@ export const MediaCurrentRecording = () => {
           setIsRecording={setIsRecording}
         />
 
-        {layout?.name === "lg" && (
-          <>
-            <Button
-              variant={isComparing ? "secondary" : "outline"}
-              size="icon"
-              id="media-compare-button"
-              data-tooltip-id="media-player-tooltip"
-              data-tooltip-content={t("compare")}
-              className="rounded-full w-8 h-8 p-0"
-              onClick={toggleCompare}
-            >
-              <GitCompareIcon className="w-4 h-4" />
-            </Button>
+        <Button
+          variant={isComparing ? "secondary" : "outline"}
+          size="icon"
+          id="media-compare-button"
+          data-tooltip-id="media-player-tooltip"
+          data-tooltip-content={t("compare")}
+          className={
+            layout?.name === "sm" ? "hidden" : "rounded-full w-8 h-8 p-0"
+          }
+          onClick={toggleCompare}
+        >
+          <GitCompareIcon className="w-4 h-4" />
+        </Button>
 
-            <Button
-              variant={isSelectingRegion ? "secondary" : "outline"}
-              size="icon"
-              data-tooltip-id="media-player-tooltip"
-              data-tooltip-content={t("selectRegion")}
-              className="rounded-full w-8 h-8 p-0"
-              onClick={() => setIsSelectingRegion(!isSelectingRegion)}
-            >
-              <TextCursorInputIcon className="w-4 h-4" />
-            </Button>
-          </>
-        )}
+        <Button
+          variant={isSelectingRegion ? "secondary" : "outline"}
+          size="icon"
+          data-tooltip-id="media-player-tooltip"
+          data-tooltip-content={t("selectRegion")}
+          className={
+            layout?.name === "sm" ? "hidden" : "rounded-full w-8 h-8 p-0"
+          }
+          onClick={() => setIsSelectingRegion(!isSelectingRegion)}
+        >
+          <TextCursorInputIcon className="w-4 h-4" />
+        </Button>
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
               variant="outline"
               size="icon"
-              id="media-compare-button"
               data-tooltip-id="media-player-tooltip"
               data-tooltip-content={t("more")}
               className="rounded-full w-8 h-8 p-0"
@@ -617,13 +611,13 @@ export const MediaCurrentRecording = () => {
           className="rounded-t-2xl shadow-lg max-h-screen overflow-y-scroll"
           displayClose={false}
         >
-            <SheetHeader className="flex items-center justify-center -mt-4 mb-2">
-              <SheetClose>
-                <ChevronDownIcon />
-              </SheetClose>
-            </SheetHeader>
+          <SheetHeader className="flex items-center justify-center -mt-4 mb-2">
+            <SheetClose>
+              <ChevronDownIcon />
+            </SheetClose>
+          </SheetHeader>
 
-            <RecordingDetail recording={currentRecording} />
+          <RecordingDetail recording={currentRecording} />
         </SheetContent>
       </Sheet>
     </div>
