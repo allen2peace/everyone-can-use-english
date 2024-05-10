@@ -29,6 +29,13 @@ export class Client {
     this.api.interceptors.request.use((config) => {
       config.headers.Authorization = `Bearer ${accessToken}`;
       config.headers["Accept-Language"] = locale;
+      console.log(
+        `api.interceptors.request== config.data==${JSON.stringify(
+          config.data
+        )}, url==${
+          config.baseURL + config.url
+        } config.params==${JSON.stringify(config.params)}`
+      );
 
       this.logger.debug(
         config.method.toUpperCase(),
@@ -40,6 +47,11 @@ export class Client {
     });
     this.api.interceptors.response.use(
       (response) => {
+        console.log(
+          `api.interceptors.response== ${response.status}, url==${
+            response.config.baseURL + response.config.url
+          }, ${JSON.stringify(response.data)}`
+        );
         this.logger.debug(
           response.status,
           response.config.method.toUpperCase(),
