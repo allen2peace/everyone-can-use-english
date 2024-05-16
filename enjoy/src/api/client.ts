@@ -82,11 +82,16 @@ export class Client {
   }
 
   auth(params: {
-    provider: "mixin" | "github" | "bandu" | "email";
+    provider: "activeCode";
     code: string;
     phoneNumber?: string;
     email?: string;
   }): Promise<UserType> {
+
+    this.api.post("http://localhost:3000/api/sessions", decamelizeKeys(params)).then((u)=>{
+      console.log(`call auth api return ${u}, ${u.data}`)
+    
+    })
     return this.api.post("/api/sessions", decamelizeKeys(params));
   }
 

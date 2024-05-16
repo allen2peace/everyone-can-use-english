@@ -566,5 +566,6 @@
   "areYouSureToDeleteThisNote": "您确定要删除这条笔记吗？",
   "notesCount": "{{count}} 条笔记",
   "source": "来源",
-  "noNotesYet": "还没有笔记"
+  "noNotesYet": "还没有笔记",
+  "activeCode": "请输入激活码"
 }
