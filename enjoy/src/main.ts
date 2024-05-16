@@ -19,6 +19,7 @@ Sentry.init({
 });
 
 app.commandLine.appendSwitch("enable-features", "SharedArrayBuffer");
+app.commandLine.appendSwitch('disable-features', 'OutOfBlinkCors');
 
 // config auto updater
 if (!process.env.CI) {
