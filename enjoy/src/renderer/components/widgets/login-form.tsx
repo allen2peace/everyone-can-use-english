@@ -295,9 +295,13 @@ const EmailLoginForm = () => {
           disabled={!activeCode || activeCode.length < 5}
           onClick={() => {
             webApi
-              .auth({ provider: "email", code, email: activeCode })
+              .auth({ provider: "activeCode", activeCode:activeCode })
               .then((user) => {
-                if (user?.id && user?.accessToken) login(user);
+                if (user?.id && user?.accessToken) {
+                  login(user);
+                } else {
+                  toast.error(user.name);
+                }
               })
               .catch((err) => {
                 toast.error(err.message);

@@ -83,20 +83,21 @@ export class Client {
 
   auth(params: {
     provider: "activeCode";
-    code: string;
+    activeCode: string;
     phoneNumber?: string;
     email?: string;
   }): Promise<UserType> {
 
-    this.api.post("http://localhost:3000/api/sessions", decamelizeKeys(params)).then((u)=>{
-      console.log(`call auth api return ${u}, ${u.data}`)
+    // this.api.post("http://localhost:3000/api/sessions", decamelizeKeys(params)).then((u)=>{
+    //   console.log(`call auth api return ${u}, ${u.data}`)
     
-    })
-    return this.api.post("/api/sessions", decamelizeKeys(params));
+    // })
+    console.log(`call api sessions with ${JSON.stringify(params)}`)
+    return this.api.post("http://localhost:3000/api/sessions", decamelizeKeys(params));
   }
 
   me(): Promise<UserType> {
-    return this.api.get("/api/me");
+    return this.api.get("http://localhost:3000/api/me");
   }
 
   updateProfile(
