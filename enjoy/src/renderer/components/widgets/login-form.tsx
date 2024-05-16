@@ -127,7 +127,7 @@ export const LoginForm = () => {
         <CardContent>
           <EmailLoginForm />
 
-          <div className="">
+          <div className="hidden">
             <Separator className="my-4" />
             <div className="flex items-center justify-center text-xs text-muted-foreground mb-4">
               {t("youCanAlsoLoginWith")}
@@ -212,7 +212,7 @@ export const LoginForm = () => {
 };
 
 const EmailLoginForm = () => {
-  const [email, setEmail] = useState<string>("");
+  const [activeCode, setActiveCode] = useState<string>("");
   const [code, setCode] = useState<string>("");
   const [codeSent, setCodeSent] = useState<boolean>(false);
   const [countdown, setCountdown] = useState<number>(0);
@@ -236,20 +236,20 @@ const EmailLoginForm = () => {
     <div className="w-full">
       <div className="w-full grid gap-4 mb-6">
         <div className="grid gap-2">
-          <Label htmlFor="email">{t("email")}</Label>
+          <Label htmlFor="text">{t("activeCode")}</Label>
           <Input
-            id="email"
+            id="activeCode"
             className="h-10"
-            type="email"
+            type="text"
             placeholder="m@example.com"
             required
-            value={email}
+            value={activeCode}
             disabled={countdown > 0}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => setActiveCode(e.target.value)}
           />
         </div>
 
-        <div className="grid gap-2">
+        <div className="grid gap-2 hidden">
           <Label htmlFor="code">{t("verificationCode")}</Label>
           <Input
             id="code"
@@ -265,15 +265,15 @@ const EmailLoginForm = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4">
         <Button
           variant="secondary"
           size="lg"
-          className="w-full"
-          disabled={!email || countdown > 0}
+          className="w-full hidden"
+          disabled={!activeCode || countdown > 0}
           onClick={() => {
             webApi
-              .loginCode({ email })
+              .loginCode({ email: activeCode })
               .then(() => {
                 toast.success(t("codeSent"));
                 setCodeSent(true);
@@ -292,10 +292,10 @@ const EmailLoginForm = () => {
           variant="default"
           size="lg"
           className="w-full"
-          disabled={!code || code.length < 5 || !email}
+          disabled={!activeCode || activeCode.length < 5}
           onClick={() => {
             webApi
-              .auth({ provider: "email", code, email })
+              .auth({ provider: "email", code, email: activeCode })
               .then((user) => {
                 if (user?.id && user?.accessToken) login(user);
               })
