@@ -1,5 +1,5 @@
 import { createContext, useEffect, useState, useContext } from "react";
-import { extractFrequencies } from "@/utils";
+import { convertIpaToNormal, extractFrequencies } from "@/utils";
 import { AppSettingsProviderContext } from "@renderer/context";
 import {
   useTranscriptions,
@@ -13,10 +13,10 @@ import Regions, {
 } from "wavesurfer.js/dist/plugins/regions";
 import Chart from "chart.js/auto";
 import { TimelineEntry } from "echogarden/dist/utilities/Timeline.d.js";
-import { IPA_MAPPING } from "@/constants";
 import { toast } from "@renderer/components/ui";
 import { Tooltip } from "react-tooltip";
 import { debounce } from "lodash";
+import { IPA_MAPPINGS } from "@/constants";
 
 type MediaPlayerContextType = {
   layout: {
@@ -66,7 +66,7 @@ type MediaPlayerContextType = {
   pitchChart: Chart;
   // Transcription
   transcription: TranscriptionType;
-  generateTranscription: () => void;
+  generateTranscription: (text?: string) => void;
   transcribing: boolean;
   transcribingProgress: number;
   transcriptionDraft: TranscriptionType["result"];
@@ -85,7 +85,9 @@ type MediaPlayerContextType = {
   createNote: (params: any) => void;
   // Segments
   currentSegment: SegmentType;
-  createSegment: () => void;
+  createSegment: () => Promise<SegmentType | void>;
+  // remote config
+  ipaMappings: { [key: string]: string };
 };
 
 export const MediaPlayerProviderContext =
@@ -118,7 +120,7 @@ export const MediaPlayerProvider = ({
   children: React.ReactNode;
 }) => {
   const minPxPerSec = 150;
-  const { EnjoyApp } = useContext(AppSettingsProviderContext);
+  const { EnjoyApp, webApi } = useContext(AppSettingsProviderContext);
 
   const [layout, setLayout] = useState<{
     name: string;
@@ -159,6 +161,10 @@ export const MediaPlayerProvider = ({
 
   const [transcriptionDraft, setTranscriptionDraft] =
     useState<TranscriptionType["result"]>();
+
+  const [ipaMappings, setIpaMappings] = useState<{ [key: string]: string }>(
+    IPA_MAPPINGS
+  );
 
   const {
     transcription,
@@ -331,7 +337,7 @@ export const MediaPlayerProvider = ({
           );
           labels[index] = [
             labels[index] || "",
-            (IPA_MAPPING as any)[phone.text.trim()] || phone.text.trim(),
+            convertIpaToNormal(phone.text.trim()),
           ].join("");
         });
       }
@@ -510,7 +516,7 @@ export const MediaPlayerProvider = ({
     EnjoyApp.waveforms.find(media.md5).then((waveform) => {
       setWaveForm(waveform);
     });
-  }, [media]);
+  }, [media?.md5]);
 
   /*
    * Initialize wavesurfer when container ref is available
@@ -524,10 +530,14 @@ export const MediaPlayerProvider = ({
       setDecoded(false);
       setDecodeError(null);
     };
-  }, [media, ref, mediaProvider, layout?.playerHeight]);
+  }, [media?.src, ref, mediaProvider, layout?.playerHeight]);
 
   useEffect(() => {
     calculateHeight();
+
+    webApi.config("ipa_mappings").then((mappings) => {
+      if (mappings) setIpaMappings(mappings);
+    });
 
     EnjoyApp.window.onResize(() => {
       deboundeCalculateHeight();
@@ -584,6 +594,7 @@ export const MediaPlayerProvider = ({
           createNote,
           currentSegment: segment,
           createSegment,
+          ipaMappings,
         }}
       >
         {children}

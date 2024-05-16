@@ -73,6 +73,21 @@ type EnjoyAppType = {
   onNotification: (
     callback: (event, notification: NotificationType) => void
   ) => void;
+  onLookup: (
+    callback: (
+      event,
+      selection: string,
+      position: { x: number; y: number }
+    ) => void
+  ) => void;
+  offLookup: () => void;
+  onTranslate: (
+    callback: (
+      event,
+      selection: string,
+      position: { x: number; y: number }
+    ) => void
+  ) => void;
   shell: {
     openExternal: (url: string) => Promise<void>;
     openPath: (path: string) => Promise<void>;
@@ -96,7 +111,9 @@ type EnjoyAppType = {
     setUser: (user: UserType) => Promise<void>;
     getUserDataPath: () => Promise<string>;
     getDefaultEngine: () => Promise<string>;
-    setDefaultEngine: (engine: "enjoyai" | "openai") => Promise<void>;
+    setDefaultEngine: (string) => Promise<string>;
+    getGptEngine: () => Promise<GptEngineSettingType>;
+    setGptEngine: (GptEngineSettingType) => Promise<GptEngineSettingType>;
     getLlm: (provider: SupportedLlmProviderType) => Promise<LlmProviderType>;
     setLlm: (
       provider: SupportedLlmProviderType,
@@ -130,6 +147,10 @@ type EnjoyAppType = {
     update: (id: string, params: any) => Promise<AudioType | undefined>;
     destroy: (id: string) => Promise<undefined>;
     upload: (id: string) => Promise<void>;
+    crop: (
+      id: string,
+      params: { startTime: number; endTime: number }
+    ) => Promise<string>;
   };
   videos: {
     findAll: (params: any) => Promise<VideoType[]>;
@@ -138,6 +159,10 @@ type EnjoyAppType = {
     update: (id: string, params: any) => Promise<VideoType | undefined>;
     destroy: (id: string) => Promise<undefined>;
     upload: (id: string) => Promise<void>;
+    crop: (
+      id: string,
+      params: { startTime: number; endTime: number }
+    ) => Promise<string>;
   };
   recordings: {
     findAll: (where: any) => Promise<RecordingType[]>;

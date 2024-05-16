@@ -123,6 +123,23 @@ contextBridge.exposeInMainWorld("__ENJOY_APP__", {
   onNotification: (
     callback: (event: IpcRendererEvent, notification: NotificationType) => void
   ) => ipcRenderer.on("on-notification", callback),
+  onLookup: (
+    callback: (
+      event: IpcRendererEvent,
+      selection: string,
+      position: { x: number; y: number }
+    ) => void
+  ) => ipcRenderer.on("on-lookup", callback),
+  offLookup: () => {
+    ipcRenderer.removeAllListeners("on-lookup");
+  },
+  onTranslate: (
+    callback: (
+      event: IpcRendererEvent,
+      selection: string,
+      position: { x: number; y: number }
+    ) => void
+  ) => ipcRenderer.on("on-translate", callback),
   shell: {
     openExternal: (url: string) =>
       ipcRenderer.invoke("shell-open-external", url),
@@ -159,6 +176,12 @@ contextBridge.exposeInMainWorld("__ENJOY_APP__", {
     },
     setDefaultEngine: (engine: "enjoyai" | "openai") => {
       return ipcRenderer.invoke("settings-set-default-engine", engine);
+    },
+    getGptEngine: () => {
+      return ipcRenderer.invoke("settings-get-gpt-engine");
+    },
+    setGptEngine: (engine: GptEngineSettingType) => {
+      return ipcRenderer.invoke("settings-set-gpt-engine", engine);
     },
     getLlm: (provider: string) => {
       return ipcRenderer.invoke("settings-get-llm", provider);
@@ -227,6 +250,9 @@ contextBridge.exposeInMainWorld("__ENJOY_APP__", {
     upload: (id: string) => {
       return ipcRenderer.invoke("audios-upload", id);
     },
+    crop: (id: string, params: { startTime: number; endTime: number }) => {
+      return ipcRenderer.invoke("audios-crop", id, params);
+    },
   },
   videos: {
     findAll: (params: {
@@ -249,6 +275,9 @@ contextBridge.exposeInMainWorld("__ENJOY_APP__", {
     },
     upload: (id: string) => {
       return ipcRenderer.invoke("videos-upload", id);
+    },
+    crop: (id: string, params: { startTime: number; endTime: number }) => {
+      return ipcRenderer.invoke("videos-crop", id, params);
     },
   },
   recordings: {

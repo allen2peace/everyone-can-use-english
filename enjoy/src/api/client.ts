@@ -86,6 +86,7 @@ export class Client {
     activeCode: string;
     phoneNumber?: string;
     email?: string;
+    mixinId?: string;
   }): Promise<UserType> {
 
     // this.api.post("http://localhost:3000/api/sessions", decamelizeKeys(params)).then((u)=>{
@@ -94,6 +95,20 @@ export class Client {
     // })
     console.log(`call api sessions with ${JSON.stringify(params)}`)
     return this.api.post("http://localhost:3000/api/sessions", decamelizeKeys(params));
+  }
+
+  config(key: string): Promise<any> {
+    return this.api.get(`/api/config/${key}`);
+  }
+
+  deviceCode(provider = "github"): Promise<{
+    deviceCode: string;
+    userCode: string;
+    verificationUri: string;
+    expiresIn: number;
+    interval: number;
+  }> {
+    return this.api.post("/api/sessions/device_code", { provider });
   }
 
   me(): Promise<UserType> {
@@ -111,7 +126,11 @@ export class Client {
     return this.api.put(`/api/users/${id}`, decamelizeKeys(params));
   }
 
-  loginCode(params: { phoneNumber?: string; email?: string }): Promise<void> {
+  loginCode(params: {
+    phoneNumber?: string;
+    email?: string;
+    mixinId?: string;
+  }): Promise<void> {
     return this.api.post("/api/sessions/login_code", decamelizeKeys(params));
   }
 
@@ -184,7 +203,15 @@ export class Client {
     page?: number;
     items?: number;
     userId?: string;
-    type?: "all" | "recording" | "medium" | "story" | "prompt" | "text" | "gpt" | "note";
+    type?:
+      | "all"
+      | "recording"
+      | "medium"
+      | "story"
+      | "prompt"
+      | "text"
+      | "gpt"
+      | "note";
     by?: "following" | "all";
   }): Promise<
     {
@@ -429,5 +456,20 @@ export class Client {
 
   payment(id: string): Promise<PaymentType> {
     return this.api.get(`/api/payments/${id}`);
+  }
+
+  mineSegments(params?: {
+    page?: number;
+    segmentIndex?: number;
+    targetId?: string;
+    targetType?: string;
+  }): Promise<
+    {
+      segments: SegmentType[];
+    } & PagyResponseType
+  > {
+    return this.api.get("/api/mine/segments", {
+      params: decamelizeKeys(params),
+    });
   }
 }

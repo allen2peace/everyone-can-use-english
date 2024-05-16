@@ -28,6 +28,7 @@ import {
   SelectContent,
   SelectItem,
   Textarea,
+  toast,
 } from "@renderer/components/ui";
 import { useState, useEffect, useContext } from "react";
 import {
@@ -36,35 +37,35 @@ import {
 } from "@renderer/context";
 import { LoaderIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { GPT_PROVIDERS, TTS_PROVIDERS, GPTShareButton } from "@renderer/components";
+import {
+  GPT_PROVIDERS,
+  TTS_PROVIDERS,
+  GPTShareButton,
+} from "@renderer/components";
 
 const conversationFormSchema = z.object({
   name: z.string().optional(),
   engine: z
     .enum(["enjoyai", "openai", "ollama", "googleGenerativeAi"])
     .default("openai"),
-  configuration: z
-    .object({
-      type: z.enum(["gpt", "tts"]),
-      model: z.string().optional(),
+  configuration: z.object({
+    type: z.enum(["gpt", "tts"]),
+    model: z.string().optional(),
+    baseUrl: z.string().optional(),
+    roleDefinition: z.string().optional(),
+    temperature: z.number().min(0).max(1).default(0.2),
+    numberOfChoices: z.number().min(1).default(1),
+    maxTokens: z.number().min(-1).default(2000),
+    presencePenalty: z.number().min(-2).max(2).default(0),
+    frequencyPenalty: z.number().min(-2).max(2).default(0),
+    historyBufferSize: z.number().min(0).default(10),
+    tts: z.object({
+      engine: z.enum(["openai", "enjoyai"]).default("enjoyai"),
+      model: z.string().default("tts-1"),
+      voice: z.string(),
       baseUrl: z.string().optional(),
-      roleDefinition: z.string().optional(),
-      temperature: z.number().min(0).max(1).default(0.2),
-      numberOfChoices: z.number().min(1).default(1),
-      maxTokens: z.number().min(-1).default(2000),
-      presencePenalty: z.number().min(-2).max(2).default(0),
-      frequencyPenalty: z.number().min(-2).max(2).default(0),
-      historyBufferSize: z.number().min(0).default(10),
-      tts: z
-        .object({
-          engine: z.enum(["openai", "enjoyai"]).default("openai"),
-          model: z.string().default("tts-1"),
-          voice: z.string().optional(),
-          baseUrl: z.string().optional(),
-        })
-        .optional(),
-    })
-    .optional(),
+    }),
+  }),
 });
 
 export const ConversationForm = (props: {
@@ -73,12 +74,22 @@ export const ConversationForm = (props: {
 }) => {
   const { conversation, onFinish } = props;
   const [submitting, setSubmitting] = useState<boolean>(false);
-  const [providers, setProviders] = useState<any>(GPT_PROVIDERS);
-  const { EnjoyApp } = useContext(AppSettingsProviderContext);
+  const [gptProviders, setGptProviders] = useState<any>([]);
+  const [ttsProviders, setTtsProviders] = useState<any>([]);
+  const { EnjoyApp, webApi } = useContext(AppSettingsProviderContext);
   const { openai } = useContext(AISettingsProviderContext);
   const navigate = useNavigate();
 
-  const refreshProviders = async () => {
+  const refreshGptProviders = async () => {
+    let providers = GPT_PROVIDERS;
+
+    try {
+      const config = await webApi.config("gpt_providers");
+      providers = Object.assign(providers, config);
+    } catch (e) {
+      console.warn(`Failed to fetch remote GPT config: ${e.message}`);
+    }
+
     try {
       const response = await fetch(providers["ollama"]?.baseUrl + "/api/tags");
       providers["ollama"].models = (await response.json()).models.map(
@@ -87,7 +98,8 @@ export const ConversationForm = (props: {
     } catch (e) {
       console.warn(`No ollama server found: ${e.message}`);
     }
-    setProviders({ ...providers });
+
+    setGptProviders({ ...providers });
   };
 
   const destroyConversation = async () => {
@@ -98,11 +110,26 @@ export const ConversationForm = (props: {
     });
   };
 
+  const refreshTtsProviders = async () => {
+    let providers = TTS_PROVIDERS;
+
+    try {
+      const config = await webApi.config("tts_providers");
+      providers = Object.assign(providers, config);
+    } catch (e) {
+      console.warn(`Failed to fetch remote TTS config: ${e.message}`);
+    }
+
+    setTtsProviders({ ...providers });
+  };
+
   useEffect(() => {
-    refreshProviders();
+    refreshGptProviders();
+    refreshTtsProviders();
   }, []);
 
   const defaultConfig = JSON.parse(JSON.stringify(conversation || {}));
+
   if (defaultConfig.engine === "openai" && openai) {
     if (!defaultConfig.configuration) {
       defaultConfig.configuration = {};
@@ -116,7 +143,7 @@ export const ConversationForm = (props: {
   }
 
   if (defaultConfig.configuration.tts?.engine === "openai" && openai) {
-    if (!defaultConfig.configuration.tts.baseUrl) {
+    if (!defaultConfig.configuration.tts?.baseUrl) {
       defaultConfig.configuration.tts.baseUrl = openai.baseUrl;
     }
   }
@@ -143,30 +170,15 @@ export const ConversationForm = (props: {
   });
 
   const onSubmit = async (data: z.infer<typeof conversationFormSchema>) => {
-    const { name, engine, configuration } = data;
+    let { name, engine, configuration } = data;
     setSubmitting(true);
 
-    Object.keys(configuration).forEach((key) => {
-      if (key === "type") return;
-
-      if (!GPT_PROVIDERS[engine]?.configurable.includes(key)) {
-        // @ts-ignore
-        delete configuration[key];
-      }
-    });
-
-    if (configuration.type === "tts") {
-      conversation.model = configuration.tts.model;
-    }
-
-    // use default base url if not set
-    if (!configuration.baseUrl) {
-      configuration.baseUrl = GPT_PROVIDERS[engine]?.baseUrl;
-    }
-
-    // use default base url if not set
-    if (!configuration.tts.baseUrl) {
-      configuration.tts.baseUrl = GPT_PROVIDERS[engine]?.baseUrl;
+    try {
+      configuration = validateConfiguration(data);
+    } catch (e) {
+      toast.error(e.message);
+      setSubmitting(false);
+      return;
     }
 
     if (conversation?.id) {
@@ -195,6 +207,54 @@ export const ConversationForm = (props: {
           setSubmitting(false);
         });
     }
+  };
+
+  const validateConfiguration = (
+    data: z.infer<typeof conversationFormSchema>
+  ) => {
+    const { engine, configuration } = data;
+
+    Object.keys(configuration).forEach((key) => {
+      if (key === "type") return;
+
+      if (
+        configuration.type === "gpt" &&
+        !gptProviders[engine]?.configurable.includes(key)
+      ) {
+        // @ts-ignore
+        delete configuration[key];
+      }
+
+      if (
+        configuration.type === "tts" &&
+        !ttsProviders[engine]?.configurable.includes(key)
+      ) {
+        // @ts-ignore
+        delete configuration.tts[key];
+      }
+    });
+
+    if (configuration.type === "tts") {
+      if (!configuration.tts?.engine) {
+        throw new Error(t("models.conversation.ttsEngineRequired"));
+      }
+      if (!configuration.tts?.model) {
+        throw new Error(t("models.conversation.ttsModelRequired"));
+      }
+    }
+
+    // use default base url if not set
+    if (!configuration.baseUrl) {
+      configuration.baseUrl = gptProviders[engine]?.baseUrl;
+    }
+
+    // use default base url if not set
+    if (!configuration?.tts?.baseUrl) {
+      configuration.tts ||= {};
+      configuration.tts.baseUrl = gptProviders[engine]?.baseUrl;
+    }
+
+    return configuration;
   };
 
   return (
@@ -273,21 +333,15 @@ export const ConversationForm = (props: {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {Object.keys(providers)
-                            .filter((key) =>
-                              GPT_PROVIDERS[key].types.includes(
-                                form.watch("configuration.type")
-                              )
-                            )
-                            .map((key) => (
-                              <SelectItem key={key} value={key}>
-                                {providers[key].name}
-                              </SelectItem>
-                            ))}
+                          {Object.keys(gptProviders).map((key) => (
+                            <SelectItem key={key} value={key}>
+                              {gptProviders[key].name}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                       <FormDescription>
-                        {providers[form.watch("engine")]?.description}
+                        {gptProviders[form.watch("engine")]?.description}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -309,13 +363,13 @@ export const ConversationForm = (props: {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {(providers[form.watch("engine")]?.models || []).map(
-                            (option: string) => (
-                              <SelectItem key={option} value={option}>
-                                {option}
-                              </SelectItem>
-                            )
-                          )}
+                          {(
+                            gptProviders[form.watch("engine")]?.models || []
+                          ).map((option: string) => (
+                            <SelectItem key={option} value={option}>
+                              {option}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -343,7 +397,7 @@ export const ConversationForm = (props: {
                   )}
                 />
 
-                {GPT_PROVIDERS[form.watch("engine")]?.configurable.includes(
+                {gptProviders[form.watch("engine")]?.configurable.includes(
                   "temperature"
                 ) && (
                   <FormField
@@ -377,7 +431,7 @@ export const ConversationForm = (props: {
                   />
                 )}
 
-                {GPT_PROVIDERS[form.watch("engine")]?.configurable.includes(
+                {gptProviders[form.watch("engine")]?.configurable.includes(
                   "maxTokens"
                 ) && (
                   <FormField
@@ -406,7 +460,7 @@ export const ConversationForm = (props: {
                   />
                 )}
 
-                {GPT_PROVIDERS[form.watch("engine")]?.configurable.includes(
+                {gptProviders[form.watch("engine")]?.configurable.includes(
                   "presencePenalty"
                 ) && (
                   <FormField
@@ -437,7 +491,7 @@ export const ConversationForm = (props: {
                   />
                 )}
 
-                {GPT_PROVIDERS[form.watch("engine")]?.configurable.includes(
+                {gptProviders[form.watch("engine")]?.configurable.includes(
                   "frequencyPenalty"
                 ) && (
                   <FormField
@@ -468,7 +522,7 @@ export const ConversationForm = (props: {
                   />
                 )}
 
-                {GPT_PROVIDERS[form.watch("engine")]?.configurable.includes(
+                {gptProviders[form.watch("engine")]?.configurable.includes(
                   "numberOfChoices"
                 ) && (
                   <FormField
@@ -531,7 +585,7 @@ export const ConversationForm = (props: {
                   )}
                 />
 
-                {GPT_PROVIDERS[form.watch("engine")]?.configurable.includes(
+                {gptProviders[form.watch("engine")]?.configurable.includes(
                   "baseUrl"
                 ) && (
                   <FormField
@@ -573,9 +627,9 @@ export const ConversationForm = (props: {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {Object.keys(TTS_PROVIDERS).map((key) => (
+                      {Object.keys(ttsProviders).map((key) => (
                         <SelectItem key={key} value={key}>
-                          {TTS_PROVIDERS[key].name}
+                          {ttsProviders[key].name}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -585,9 +639,9 @@ export const ConversationForm = (props: {
               )}
             />
 
-            {TTS_PROVIDERS[
+            {ttsProviders[
               form.watch("configuration.tts.engine")
-            ]?.configurable.includes("model") && (
+            ]?.configurable?.includes("model") && (
               <FormField
                 control={form.control}
                 name="configuration.tts.model"
@@ -606,7 +660,7 @@ export const ConversationForm = (props: {
                       </FormControl>
                       <SelectContent>
                         {(
-                          TTS_PROVIDERS[form.watch("configuration.tts.engine")]
+                          ttsProviders[form.watch("configuration.tts.engine")]
                             ?.models || []
                         ).map((model: string) => (
                           <SelectItem key={model} value={model}>
@@ -621,9 +675,9 @@ export const ConversationForm = (props: {
               />
             )}
 
-            {TTS_PROVIDERS[
+            {ttsProviders[
               form.watch("configuration.tts.engine")
-            ]?.configurable.includes("voice") && (
+            ]?.configurable?.includes("voice") && (
               <FormField
                 control={form.control}
                 name="configuration.tts.voice"
@@ -642,7 +696,7 @@ export const ConversationForm = (props: {
                       </FormControl>
                       <SelectContent>
                         {(
-                          TTS_PROVIDERS[form.watch("configuration.tts.engine")]
+                          ttsProviders[form.watch("configuration.tts.engine")]
                             ?.voices || []
                         ).map((voice: string) => (
                           <SelectItem key={voice} value={voice}>
@@ -657,7 +711,7 @@ export const ConversationForm = (props: {
               />
             )}
 
-            {TTS_PROVIDERS[
+            {ttsProviders[
               form.watch("configuration.tts.engine")
             ]?.configurable.includes("baseUrl") && (
               <FormField
