@@ -38,8 +38,7 @@ export const LoginForm = () => {
 
       <CardContent>
         <EmailLoginForm />
-
-        <div className="">
+        <div className="hidden">
           <Separator className="my-4" />
           <div className="flex items-center justify-center text-xs text-muted-foreground mb-4">
             {t("youCanAlsoLoginWith")}
