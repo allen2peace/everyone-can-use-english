@@ -81,7 +81,7 @@ export const Sidebar = () => {
               Icon={VideoIcon}
             />
 
-            <SidebarItem
+            {/* <SidebarItem
               href="/stories"
               label={t("sidebar.stories")}
               tooltip={t("sidebar.stories")}
@@ -125,7 +125,6 @@ export const Sidebar = () => {
               active={activeTab === "/community"}
               Icon={UsersRoundIcon}
             />
-
             <SidebarItem
               href="/profile"
               label={t("sidebar.profile")}
@@ -135,7 +134,7 @@ export const Sidebar = () => {
             />
 
             <Separator className="hidden xl:block" />
-
+*/}
             <Dialog>
               <DialogTrigger asChild>
                 <div className="px-1 xl:px-2">
@@ -178,6 +177,7 @@ export const Sidebar = () => {
               <DropdownMenuGroup>
                 <DropdownMenuItem
                   onClick={() =>
+                    //TODO 用户指南文档
                     EnjoyApp.shell.openExternal("https://1000h.org/enjoy-app/")
                   }
                   className="flex justify-between space-x-2"
@@ -187,7 +187,7 @@ export const Sidebar = () => {
                 </DropdownMenuItem>
               </DropdownMenuGroup>
 
-              <DropdownMenuGroup>
+              {/* <DropdownMenuGroup>
                 <DropdownMenuSub>
                   <DropdownMenuSubTrigger>
                     {t("feedback")}
@@ -219,7 +219,7 @@ export const Sidebar = () => {
                     </DropdownMenuSubContent>
                   </DropdownMenuPortal>
                 </DropdownMenuSub>
-              </DropdownMenuGroup>
+              </DropdownMenuGroup> */}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

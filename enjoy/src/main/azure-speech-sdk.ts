@@ -7,7 +7,7 @@ export class AzureSpeechSdk {
   private config: sdk.SpeechConfig;
 
   constructor(token: string, region: string) {
-    this.config = sdk.SpeechConfig.fromAuthorizationToken(token, region);
+    this.config = sdk.SpeechConfig.fromSubscription(token, region);
   }
 
   pronunciationAssessment(params: {

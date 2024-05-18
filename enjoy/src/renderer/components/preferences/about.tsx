@@ -31,13 +31,14 @@ export const About = () => {
         <Button
           variant="secondary"
           onClick={() => {
+            //TODO 用户指南
             EnjoyApp.shell.openExternal("https://1000h.org/enjoy-app/");
           }}
         >
           {t("open")}
         </Button>
       </div>
-
+{/* 
       <Separator />
 
       <div className="flex items-start justify-between py-4">
@@ -66,7 +67,7 @@ export const About = () => {
             GitHub
           </Button>
         </div>
-      </div>
+      </div> */}
     </>
   );
 };

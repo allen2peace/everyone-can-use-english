@@ -581,13 +581,13 @@ export const MediaCurrentRecording = () => {
               <span>{t("pronunciationAssessment")}</span>
             </DropdownMenuItem>
 
-            <DropdownMenuItem
+            {/* <DropdownMenuItem
               className="cursor-pointer"
               onClick={() => setIsSharing(true)}
             >
               <Share2Icon className="w-4 h-4 mr-4" />
               <span>{t("share")}</span>
-            </DropdownMenuItem>
+            </DropdownMenuItem> */}
 
             <DropdownMenuItem
               className="cursor-pointer"

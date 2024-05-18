@@ -292,7 +292,7 @@ export class Client {
   syncRecording(recording: Partial<RecordingType>) {
     if (!recording) return;
 
-    return this.api.post("/api/mine/recordings", decamelizeKeys(recording));
+    return this.api.post("http://localhost:3000/api/mine/recordings", decamelizeKeys(recording));
   }
 
   deleteRecording(id: string) {
@@ -303,7 +303,7 @@ export class Client {
     targetType?: string;
     targetId?: string;
   }): Promise<{ token: string; region: string }> {
-    return this.api.post("/api/speech/tokens", decamelizeKeys(params || {}));
+    return this.api.post("http://localhost:3000/api/speech/tokens", decamelizeKeys(params || {}));
   }
 
   syncPronunciationAssessment(

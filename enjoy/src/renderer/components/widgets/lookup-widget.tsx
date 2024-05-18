@@ -224,7 +224,7 @@ export const AiLookupResult = (props: {
             className="cursor-pointer"
             size="sm"
             asChild
-            onClick={() => handleLookup()}
+            onClick={() => handleLookup({ force: false })}
           >
             <a>
               {lookingUp && (

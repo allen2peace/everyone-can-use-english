@@ -376,7 +376,7 @@ export const MediaCaption = () => {
           <SpeechIcon className="w-4 h-4" />
         </Button>
 
-        <Button
+        {/* <Button
           variant={displayNotes ? "secondary" : "outline"}
           size="icon"
           className="rounded-full w-8 h-8 p-0"
@@ -385,9 +385,9 @@ export const MediaCaption = () => {
           onClick={() => setDisplayNotes(!displayNotes)}
         >
           <NotebookPenIcon className="w-4 h-4" />
-        </Button>
+        </Button> */}
 
-        <ConversationShortcuts
+        {/* <ConversationShortcuts
           prompt={caption.text as string}
           trigger={
             <Button
@@ -400,7 +400,7 @@ export const MediaCaption = () => {
               <BotIcon className="w-5 h-5" />
             </Button>
           }
-        />
+        /> */}
 
         <Button
           variant="outline"
